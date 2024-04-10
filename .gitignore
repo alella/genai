@@ -1,0 +1,3 @@
+claude/journaldocs/*.md
+claude/responses/*.md
+claude/logs/*.log

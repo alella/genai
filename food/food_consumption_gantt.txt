@@ -1,0 +1,101 @@
+---
+displayMode: compact
+---
+
+gantt
+    title Daily Food Consumption
+    dateFormat HH:mm
+    axisFormat %H:%M
+
+    section Header
+        Fasting window :00:00, 12:00
+        Fasting window :20:00, 23:59
+        Feeding window :12:00, 20:00
+
+    section 2024_03_24
+        trail mix :milestone,  15:30, 10m
+        potato chips :milestone,  16:30, 10m
+        homemade Chipotle :milestone,  19:00, 10m
+
+    section 2024_03_25
+        black coffee :milestone, active, 09:00, 10m
+        lunch :milestone,  13:10, 10m
+        dinner :milestone,  19:10, 10m
+
+    section 2024_03_26
+        black coffee :milestone, active, 07:30, 10m
+        lunch :milestone,  12:00, 10m
+        coffee with creamer :milestone, active, 14:20, 10m
+        Apple juice :milestone, active, 16:10, 10m
+        dinner :milestone,  18:40, 10m
+
+    section 2024_03_27
+        lunch :milestone,  12:20, 10m
+        decaf coffee :milestone, active, 14:30, 10m
+        black coffee :milestone, active, 09:00, 10m
+        dinner :milestone,  18:45, 10m
+
+    section 2024_03_28
+        black coffee :milestone, active, 08:00, 10m
+        black coffee :milestone, active, 10:10, 10m
+        lunch :milestone,  12:30, 10m
+        dinner :milestone,  19:30, 10m
+
+    section 2024_03_29
+        black coffee :milestone, active, 08:40, 10m
+        lunch :milestone,  13:00, 10m
+        banana snacks :milestone,  15:30, 10m
+        potato chips :milestone,  17:20, 10m
+        dinner :milestone,  19:50, 10m
+
+    section 2024_03_30
+        Black coffee :milestone, active, 07:30, 10m
+        Lunch :milestone,  11:50, 10m
+        Sweet corn :milestone,  16:50, 10m
+        Dinner :milestone,  19:00, 10m
+
+    section 2024_03_31
+        Black coffee :milestone, active, 08:40, 10m
+        Pizza :milestone, active, 14:00, 10m
+        Gator ride :milestone,  17:00, 10m
+        Dinner :milestone,  19:15, 10m
+
+    section 2024_04_01
+        Black coffee :milestone, active, 09:50, 10m
+        Coffee with creamer :milestone, active, 12:12, 10m
+        Lunch :milestone,  12:30, 10m
+        Dinner :milestone,  19:50, 10m
+
+    section 2024_04_02
+        Black coffee :milestone, active, 07:30, 10m
+        Lunch :milestone,  12:40, 10m
+        Coca-Cola :milestone, active, 14:00, 10m
+        Brownie :milestone,  16:10, 10m
+        Dinner :milestone,  18:00, 10m
+
+    section 2024_04_03
+        Black coffee :milestone, active, 09:00, 10m
+        Black coffee :milestone, active, 11:20, 10m
+        Lunch :milestone,  12:00, 10m
+        Biscuits :milestone,  16:30, 10m
+        Dinner :milestone,  19:45, 10m
+
+    section 2024_04_04
+        Black coffee :milestone, active, 08:40, 10m
+        Lunch :milestone,  12:30, 10m
+        Brownie :milestone,  15:00, 10m
+        Chips :milestone,  17:00, 10m
+        Dinner :milestone,  18:20, 10m
+
+    section 2024_04_05
+        Black coffee :milestone, active, 08:00, 10m
+        Black tea :milestone, active, 09:20, 10m
+        Lunch :milestone,  12:00, 10m
+        Dinner :milestone,  21:00, 10m
+
+    section 2024_04_06
+        Coffee with cream :milestone, active, 11:00, 10m
+        Lunch :milestone,  14:00, 10m
+        Snacks :milestone,  17:00, 10m
+        Dinner :milestone,  21:00, 10m
+

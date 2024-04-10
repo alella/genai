@@ -1,0 +1,14 @@
+Write a python function that takes in a query string, body and context window length. It matches the query string in the body and returns text a few characters before and after the query-string so that it matches the context window length. Window length is number of words to return.
+example: 
+  query: phone
+  body: I am with my phone right now. I want to stay away.
+  window_length: 5
+
+output: "with my phone right now."
+
+```py
+def get_context(query, body, window_length):
+    #todo
+```
+
+Only show the code. You don't need to provide any explanation.
