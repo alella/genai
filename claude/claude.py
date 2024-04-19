@@ -1,3 +1,4 @@
+import re
 import json
 import os
 import time
@@ -89,7 +90,7 @@ class Claude:
 
         return cost
 
-    def invoke_claude_3_with_text(self, prompt):
+    def invoke_claude_3_with_text(self, prompt, system_prompt="", tokens=1024):
         """
         Invokes Anthropic Claude 3 Sonnet to run an inference using the input
         provided in the request body.
@@ -104,20 +105,21 @@ class Claude:
         )
 
         # Invoke Claude 3 with the text prompt
-
+        messages = [
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": prompt}],
+            }
+        ]
         try:
             response = client.invoke_model(
                 modelId=self.model_id,
                 body=json.dumps(
                     {
                         "anthropic_version": "bedrock-2023-05-31",
-                        "max_tokens": 1024,
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": [{"type": "text", "text": prompt}],
-                            }
-                        ],
+                        "max_tokens": tokens,
+                        "messages": messages,
+                        "system": system_prompt,
                     }
                 ),
             )
@@ -127,15 +129,19 @@ class Claude:
             input_tokens = result["usage"]["input_tokens"]
             output_tokens = result["usage"]["output_tokens"]
             output_list = result.get("content", [])
-
-            content = f"# Prompt\n{prompt}\n# Response\n"
+            content = ""
             for i, output_item in enumerate(output_list):
-                content += f"## Response {i+1}\n"
-                content += output_item["text"] + "\n"
+                content = output_item["text"]
+                break
+            objs = self._xml_to_json(content)
             output = {
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
-                "content": content,
+                "user_prompt": prompt,
+                "system_prompt": prompt,
+                "max_output_tokens": tokens,
+                "parsed_objects": objs,
+                "raw_content": content,
                 "cost": self._calc_cost(input_tokens, output_tokens),
                 "cost_str": f"{self._calc_cost(input_tokens, output_tokens)} USD",
                 "session_cost": self.session_cost,
@@ -151,26 +157,37 @@ class Claude:
             )
             raise
 
-    def _write_woutput_content(self, w, response):
-        w.write(response["content"])
+    def _xml_to_json(self, input_str):
+        data = {
+            tag: text.strip()
+            for tag, text in re.findall(r"<(\w+)>(.*?)<\/\1>", input_str, re.DOTALL)
+        }
+        return data
+
+    def invoke(self, prompt, system_prompt="", tokens=1024, write_file_name=""):
+        response = self.invoke_claude_3_with_text(prompt, system_prompt, tokens)
+        markdown = "# Answer\n\n"
+        markdown += response["raw_content"]
+        markdown += "\n\n"
+        if response["parsed_objects"]:
+            markdown += "# Parsed Objects\n\n```json\n"
+            markdown += json.dumps(response["parsed_objects"], indent=2, sort_keys=True)
+            markdown += "\n```\n\n"
+        markdown += "# Metadata\n\n```json\n"
         metadata = {
             "input_tokens": response["input_tokens"],
             "output_tokens": response["output_tokens"],
             "cost": f"{response['cost_str']} USD",
             "session_cost": f"{response['session_cost']} USD",
         }
-        w.write("\n\n-----\n")
-        w.write("```json\n")
-        w.write(json.dumps(metadata, indent=2))
-        w.write("\n```")
+        markdown += json.dumps(metadata, indent=2)
+        markdown += "\n```\n\n-----\n"
 
-    def invoke(self, prompt, write_file_name=""):
-        response = self.invoke_claude_3_with_text(prompt)
         if write_file_name:
             with open(write_file_name, "w") as w:
-                self._write_woutput_content(w, response)
+                w.write(markdown)
         with open(f"responses/{dt.today()}.md", "w") as w:
-            self._write_woutput_content(w, response)
+            w.write(markdown)
         return response
 
 

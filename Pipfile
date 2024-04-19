@@ -11,6 +11,7 @@ marqo = "*"
 markdown = "*"
 markdown-full-yaml-metadata = "*"
 emoji = "*"
+click = "*"
 
 [dev-packages]
 
