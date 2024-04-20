@@ -164,8 +164,12 @@ class Claude:
         }
         return data
 
-    def invoke(self, prompt, system_prompt="", tokens=1024, write_file_name=""):
-        response = self.invoke_claude_3_with_text(prompt, system_prompt, tokens)
+    def invoke(self, prompt_instance, tokens=1024, write_file_name=""):
+        response = self.invoke_claude_3_with_text(
+            prompt_instance.get_user_prompt(),
+            prompt_instance.get_system_prompt(),
+            tokens,
+        )
         markdown = "# Answer\n\n"
         markdown += response["raw_content"]
         markdown += "\n\n"

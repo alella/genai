@@ -12,8 +12,11 @@ markdown = "*"
 markdown-full-yaml-metadata = "*"
 emoji = "*"
 click = "*"
+pyperclip = "*"
+diff-match-patch = "*"
 
 [dev-packages]
+black = "*"
 
 [requires]
 python_version = "3.12"
