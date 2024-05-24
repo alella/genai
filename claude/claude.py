@@ -5,9 +5,11 @@ import time
 import boto3
 from datetime import datetime as dt
 from botocore.exceptions import ClientError
+import xml.etree.ElementTree as ET
 from rich.logging import RichHandler
 from rich.console import Console
 import logging
+from llm_utils import Prompt
 
 
 def setup_logging():
@@ -158,10 +160,18 @@ class Claude:
             raise
 
     def _xml_to_json(self, input_str):
+        def _xml_to_dict(element):
+            if len(element) == 0:  # if the element has no children
+                return element.text
+            return {child.tag: _xml_to_dict(child) for child in element}
+
         data = {
             tag: text.strip()
             for tag, text in re.findall(r"<(\w+)>(.*?)<\/\1>", input_str, re.DOTALL)
         }
+        if "tool_invoke" in data:
+            root = ET.fromstring("<x>" + data["tool_invoke"] + "</x>")
+            data["tool_invoke"] = _xml_to_dict(root)
         return data
 
     def invoke(self, prompt_instance, tokens=1024, write_file_name=""):
@@ -190,7 +200,10 @@ class Claude:
         if write_file_name:
             with open(write_file_name, "w") as w:
                 w.write(markdown)
-        with open(f"responses/{dt.today()}.md", "w") as w:
+        response_dir = os.path.join(os.path.dirname(__file__), "responses")
+        os.makedirs(response_dir, exist_ok=True)
+        file_path = os.path.join(response_dir, f"{dt.today()}.md")
+        with open(file_path, "w") as w:
             w.write(markdown)
         return response
 
@@ -210,7 +223,8 @@ def main():
             with open("input.txt", "r") as f:
                 text_prompt = f.read()
             logger.info(f"Invoking claude")
-            wrapper.invoke(text_prompt, "output.md")
+            prompt_instance = Prompt(text_prompt, "")
+            wrapper.invoke(prompt_instance, write_file_name="output.md")
 
             # Update the previous timestamp
             previous_timestamp = current_timestamp

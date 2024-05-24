@@ -14,6 +14,8 @@ emoji = "*"
 click = "*"
 pyperclip = "*"
 diff-match-patch = "*"
+gradio = "*"
+setuptools = "*"
 
 [dev-packages]
 black = "*"
