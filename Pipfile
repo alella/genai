@@ -16,6 +16,8 @@ pyperclip = "*"
 diff-match-patch = "*"
 gradio = "*"
 setuptools = "*"
+mattermostdriver = "*"
+openai = "*"
 
 [dev-packages]
 black = "*"
