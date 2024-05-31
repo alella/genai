@@ -55,24 +55,32 @@ class Bot:
         self.api = api
         self.system_prompt = system_prompt
         self.max_message_count = max_message_count
-        self.history = Messages(max_count=max_message_count)
+        self.history = {}
         self.last_invoked = dt.strptime("01/01/1970", "%d/%m/%Y")
         self.api_type = api_type
 
-    def invoke(self, message):
-        self.history.push("user", message)
+    def invoke(self, context: str, message: str):
+        context_hash = hash(context)
+        if context_hash not in self.history:
+            self.history[context_hash] = Messages(max_count=self.max_message_count)
+
+        self.history[context_hash].push("user", message)
+        print(self.history[context_hash]._messages)
         if self.api_type == "openai":
-            messages = self.history.get_openai_messages()
+            messages = self.history[context_hash].get_openai_messages()
         else:
-            messages = self.history.get_claude_messsages()
+            messages = self.history[context_hash].get_claude_messsages()
+
         resp = self.api.invoke_chat(messages, self.system_prompt)
-        self.history.push("assistant", resp["raw_content"])
+        self.history[context_hash].push("assistant", resp["raw_content"])
         self.last_invoked = dt.now()
         return resp
 
-    def reset(self):
+    def reset(self, context: str):
+        context_hash = hash(context)
+        if context_hash in self.history:
+            self.history[context_hash] = Messages(max_count=self.max_message_count)
         self.last_invoked = dt.strptime("01/01/1970", "%d/%m/%Y")
-        self.history = Messages(max_count=self.max_message_count)
 
 
 class Prompt:

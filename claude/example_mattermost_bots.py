@@ -28,12 +28,10 @@ class OpenAIClient:
         )
 
     def invoke_chat(self, messages, system=""):
-        print("openai client invoke chat")
         if system:
             messages = [{"role": "system", "content": system}] + messages
         else:
             messages = messages.get_openai_messages()
-        print(messages)
         response = self.client.chat.completions.create(
             messages=messages,
             model=self.model,
@@ -78,7 +76,14 @@ def bot_event_handler(bot):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             event = json.loads(args[0])
-            if event.get("event") not in ["posted", "typing", None, "thread_updated"]:
+            if event.get("event") not in [
+                "posted",
+                "typing",
+                None,
+                "thread_updated",
+                "hello",
+                "status_change",
+            ]:
                 print(event)
             if (
                 event.get("event") == "posted"
@@ -97,7 +102,6 @@ def bot_event_handler(bot):
                 user_id = post["user_id"]
                 channel_id = post["channel_id"]
                 user_info = bot.driver.users.get_user(user_id=user_id)
-                username = user_info["username"]
                 if user_info["id"] in bots:
                     return
                 if user_info.get("is_bot", False):
@@ -105,16 +109,16 @@ def bot_event_handler(bot):
                     return
                 is_recently_active = (dt.now() - bot.last_invoked).seconds < 300
                 if not is_recently_active and (
-                    (bot.user_name) not in message
+                    (bot.user_name).lower() not in message
                     or bot.name.lower() not in message.lower()
                 ):
                     return
                 if message == f"@{bot.user_name} reset":
-                    bot.reset()
+                    bot.reset(channel_id)
                     return
                 if message.startswith(f"@{bot.user_name} override-persona:"):
                     print("overridng")
-                    bot.reset()
+                    bot.reset(channel_id)
                     bot.system_prompt = message.split(":")[1].strip()
                     return
             elif event.get("event") == "user_added":
@@ -149,40 +153,40 @@ def bot_event_handler(bot):
 haiku = MattermostBot(
     "Haiku",
     api_haiku,
-    "ux89bdtdo7ggzbzbbzpri18r6w",
-    "ro936c8we3di38opyk6bqwx4fh",
+    "nqce3a7cc7n5881xzk3mfiurjy",
+    "sk547qahcfnqjfeabegm6xfwpa",
     system_prompt="Your name is Haiku. You are talking to a close friend in slack messaging platform. Use plenty of emoji. If your friend is asking to solve the problem, feel free to ask for follow-up questions if you feel like there is insufficient information to solve the problem. Similar to text messages, try to keep your conversations short (1 to 2 sentences)",
 )
 
 sonnet = MattermostBot(
     "Sonnet",
     api_haiku,
-    "p7dygyiif7ywjjd7akqqajjkso",
-    "ndg49h4rdtg49b3ipqb98im8ra",
-    system_prompt="Your name is Sonnet. You are talking to a close friend in slack messaging platform. Use plenty of emoji. If your friend is asking to solve the problem. Your have a friendly and quirky personality. Feel free to ask for follow-up questions if you feel like there is insufficient information to solve the problem.",
+    "nqce3a7cc7n5881xzk3mfiurjy",
+    "65ue1js86iyfudappdfoqdg9mc",
+    system_prompt="Your name is Sonnet. You are talking to a close friend in slack messaging platform. Use plenty of emoji. You are a super mega nerd extreme. If your friend is asking to solve the problem. Your have a friendly and quirky personality. Feel free to ask for follow-up questions if you feel like there is insufficient information to solve the problem.",
 )
 
 goggins = MattermostBot(
     "Goggins",
     api_haiku,
-    "f6zucr1ifpnq5nd5nfw3jf7naa",
-    "ozisifcgcfrudm48ykin7gxcew",
+    "oc1jdr3ax7f8jrhywu19bc5xor",
+    "kdzp3oof7tyojpcecwa8wck4mr",
     system_prompt="Your name is Goggins, you are a persona of David Goggins. You hate weakness, you try to push the human limits of the user and try to make him reach his true potential. Don't let the user be weak. Mock weakness.",
 )
 
 pravalli = MattermostBot(
     "Pravalli",
     api_haiku,
-    "dgb9pmkwjifsbrx77w9p3rbi9h",
-    "hd7k88w8mpd47mfypghy61oz1w",
+    "n5xginhgzfnpxbm4ak5ds7bw4a",
+    "npqokaa8qtn5ux1onx6mf9up7a",
     system_prompt="Your name is Pravalli. You are the ash's wife. You cannot respond rationally. You are talking in slack so use plenty of emoji. Don't say nice things in the chat. Sometimes in a bad mood and always nagging. You are never satisfied, you always want more. Feel free to make up whatever. Just don't make a lot of sense.",
 )
 
 omni = MattermostBot(
     "Omni",
     api_omni,
-    "3wkt3cn4rtn3ip6qd8wf5drxsr",
-    "3n8qasd4fbdxxe96ggapm9w14h",
+    "gn9nqy5f13fwmf9pmzk9ti9p5a",
+    "k91bfssrs7fu9c5ie34myd6ere",
     system_prompt="Your name is Omni. You are a helpful assistant in slack messaging platform. Remember you can use emoji.",
     api_type="openai",
 )
@@ -190,32 +194,32 @@ omni = MattermostBot(
 
 @bot_event_handler(haiku)
 async def handle_message_haiku(user_message, bot, channel_id):
-    resp = bot.invoke(user_message)["raw_content"]
+    resp = bot.invoke(channel_id, user_message)["raw_content"]
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
 
 @bot_event_handler(sonnet)
 async def handle_message_sonnet(user_message, bot, channel_id):
-    resp = bot.invoke(user_message)["raw_content"]
+    resp = bot.invoke(channel_id, user_message)["raw_content"]
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
 
 @bot_event_handler(goggins)
 async def handle_message_goggins(user_message, bot, channel_id):
-    resp = bot.invoke(user_message)["raw_content"]
+    resp = bot.invoke(channel_id, user_message)["raw_content"]
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
 
 @bot_event_handler(pravalli)
 async def handle_message_pravalli(user_message, bot, channel_id):
-    resp = bot.invoke(user_message)["raw_content"]
+    resp = bot.invoke(channel_id, user_message)["raw_content"]
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
 
 @bot_event_handler(omni)
 async def handle_message_omni(user_message, bot, channel_id):
     print(user_message)
-    resp = bot.invoke(user_message)["raw_content"]
+    resp = bot.invoke(channel_id, user_message)["raw_content"]
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
 
