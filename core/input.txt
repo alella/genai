@@ -1,0 +1,109 @@
+Modify the descriptions for each config so they are more readable.
+
+<context>
+# Rasperry Pi NAS project
+
+## Config 1 : PoE 
+
+This utilizes using a PoE adapter and an nvme base with a single nvme. This doesn't have any raid config. Some of the data can be backed up to cloud periodically but the backup size would be limited to a maximum 15 GB, which means most of the photos cannot be backed up.
+This solution cannot be upgraded to config 2.
+
+### Partlist
+- Raspberry Pi
+- NVMe SSD
+- nvme base
+
+Total cost for Config 1: $82 + $72 + $14.3 + $30 = $198.3
+## config 2: nvme base Duo
+
+Raid config can be used. This is the safest option to store data
+
+### Partlist
+- Active Cooler
+- Raspberry Pi
+- 2 x NVMe SSD
+- nvme base duo
+
+
+Total cost for Config 2: $82 + $144 + $30 + $5.2 = $261.2
+## config 3: ext Hdd
+
+This doesn't use PoE. This is the cheapest config. Speed could still be optimized by using an ethernet jack for the raspberry pi. It is not required to buy an external hdd. Some of the data can be backed up to cloud periodically but the backup size would be limited to a maximum 15 GB, which means most of the photos cannot be backed up.
+This solution can be extended down the line to use nvme base Duo (config 2) when the item is in stock.
+
+### Partlist
+- Raspberry Pi
+- Active Cooler
+
+Total cost for Config 3: $82 + $5.2 = $87.2
+
+## Part details
+
+### NVME base Duo
+
+NVMe Base Duo is a PCIe Gen 2 extension board for Raspberry Pi 5. Simply populate it with one or two M-key NVMe SSDs (2230 to 2280 sizes supported) and mount it under (or over) your Pi for a compact and fast storage solution - It even comes with rubber feet!
+
+NOTE: You cannot boot from NVMe drives installed on NVMe Base Duo.
+NOTE: This is out of stock
+
+cost: 30 usd
+
+### 1TB WD Blue SN580 NVMe Internal SSD
+
+capacity: 1TB
+cost: 72 USD
+max read speed: 4100 MB/s
+link: https://a.co/d/ac5IVi5
+
+### Raspberry Pi 5 Official Active Cooler
+
+This dynamic cooling dream team of heatsink and fan is so easy to hook up
+
+cost: 5.2 usd
+link: https://shop.pimoroni.com/products/raspberry-pi-5-active-cooler?variant=41044554580051
+
+### NVME base
+NVMe Base is a PCIe extension board for Raspberry Pi 5. Simply populate it with an M-key NVMe SSD (2230 to 2280 sizes supported) and mount it under your Pi for a compact and fast storage solution
+
+cost: 14.3 usd
+link: https://a.co/d/0yoTd6z
+
+### PoE HAT
+
+- Standard Raspberry Pi 40PIN GPIO header, supports Raspberry Pi 5
+- PoE (Power Over Ethernet) capability，IEEE 802.3af/at-compliant
+- Fully isolated switched-mode power supply (SMPS)
+- Onboard high speed active cooling fan, with metal heatsink, better heat dissipation
+- 
+cost: 30 usd
+link: https://a.co/d/3VaJl60
+
+### Raspberry Pi 5
+
+Featuring a 64-bit quad-core Arm Cortex-A76 processor running at 2.4GHz coupled with the up to 8GB LPDDR4 RAM, Raspberry Pi 5 delivers a 2–3× increase in CPU performance relative to Raspberry Pi 4. Alongside a substantial uplift in graphics performance from an 800MHz VideoCore VII GPU;
+
+That's performance that you'll really notice when you're on the desktop, playing games, compiling your kernel for the umpteenth time trying to get Sound Blaster support working with Pulse Audio or just crunching some numbers for the LLM that powers your your automated cat GIF scraping bot - meow!
+
+features:
+- 2.4GHz quad-core 64-bit Arm Cortex-A76 CPU 😎
+- VideoCore VII GPU, supporting OpenGL ES 3.1, Vulkan 1.2
+- Dual 4Kp60 HDMI® output (HDR + HEVC decoder)
+- LPDDR4X-4267 SDRAM (4GB and 8GB options)
+- Dual-band 802.11ac Wi-Fi® + Bluetooth 5.0 / BLE
+- microSD card slot (high-speed SDR104 mode)
+- PCIe 2.0 x1 interface for fast peripherals (requires adapter) 🤯
+- 4 × USB ports (2 x 3.0 @ 5Gbps & 2 x 2.0)
+- Gigabit Ethernet (PoE+ requires separate PoE+ HAT)
+- 2 × 4-lane MIPI camera/display ports 😲
+- 5V/5A DC power via USB-C, with Power Delivery support
+- Raspberry Pi standard 40-pin GPIO header
+- Real-time clock (RTC), powered from external battery
+
+cost: 82 usd
+## Other Details
+
+Network speed b/w 2 computers within my LAN (wireless): 21.0 to 29.7 MBytes/sec
+
+
+
+</context>

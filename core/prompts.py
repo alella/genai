@@ -1,7 +1,5 @@
 import json
-import inspect
-from functools import wraps
-from datetime import datetime as dt
+from core.llm_utils import LLMFNS
 
 
 class Messages:
@@ -45,42 +43,6 @@ class Messages:
         for msg in self._messages[-count:]:
             messages += f"{msg['name']}: {msg['text']}\n"
         return messages
-
-
-class Bot:
-    def __init__(
-        self, name, api, system_prompt="", max_message_count=20, api_type="claude"
-    ):
-        self.name = name
-        self.api = api
-        self.system_prompt = system_prompt
-        self.max_message_count = max_message_count
-        self.history = {}
-        self.last_invoked = dt.strptime("01/01/1970", "%d/%m/%Y")
-        self.api_type = api_type
-
-    def invoke(self, context: str, message: str):
-        context_hash = hash(context)
-        if context_hash not in self.history:
-            self.history[context_hash] = Messages(max_count=self.max_message_count)
-
-        self.history[context_hash].push("user", message)
-        print(self.history[context_hash]._messages)
-        if self.api_type == "openai":
-            messages = self.history[context_hash].get_openai_messages()
-        else:
-            messages = self.history[context_hash].get_claude_messsages()
-
-        resp = self.api.invoke_chat(messages, self.system_prompt)
-        self.history[context_hash].push("assistant", resp["raw_content"])
-        self.last_invoked = dt.now()
-        return resp
-
-    def reset(self, context: str):
-        context_hash = hash(context)
-        if context_hash in self.history:
-            self.history[context_hash] = Messages(max_count=self.max_message_count)
-        self.last_invoked = dt.strptime("01/01/1970", "%d/%m/%Y")
 
 
 class Prompt:
@@ -146,7 +108,7 @@ class ToolPrompt(Prompt):
         )
         self.resultPrompt = Prompt(
             f"User: {user_prompt_template}\n\nAssistant:{{tool_invoke}} \n\nTool: {{tool_response}}\n\n Assistant: ",
-            system_prompt_template=f"Complete the conversation using the response from Tool's <output> xml tag, If you see any error response from the tool, let the user know that you cannot figure out the answer.",
+            system_prompt_template="Complete the conversation using the response from Tool's <output> xml tag, If you see any error response from the tool, let the user know that you cannot figure out the answer.",
         )
 
     def invoke(self, api, tokens=1024):
@@ -179,66 +141,3 @@ class ToolPrompt(Prompt):
                     result["raw_content"] = t_result["raw_content"]
                     break
         return result
-
-
-# Global variable to store function descriptions
-LLMFNS = []
-
-
-def llm_tool(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        # Get the function signature
-        signature = inspect.signature(func)
-        bound_arguments = signature.bind(*args, **kwargs)
-        bound_arguments.apply_defaults()
-
-        # Type cast the arguments
-        for name, value in bound_arguments.arguments.items():
-            param_type = signature.parameters[name].annotation
-            if param_type != inspect.Parameter.empty:
-                bound_arguments.arguments[name] = param_type(value)
-
-        try:
-            # Call the function with type-cast arguments
-            func_output = func(*bound_arguments.args, **bound_arguments.kwargs)
-            func_error = ""
-        except Exception as e:
-            func_error = str(e)
-            func_output = ""
-        return f"""
-        <tool_output>
-        <tool_name>{func.__name__}</tool_name>
-        <output>{str(func_output)}</output>
-        <error>{func_error}</error>
-        </tool_output>
-        """
-
-    # Extract function metadata
-    func_name = func.__name__
-    docstring = func.__doc__.strip() if func.__doc__ else func.__name__
-
-    # Extract parameter information
-    signature = inspect.signature(func)
-    parameters = signature.parameters
-
-    # Construct XML description
-    xml_description = f"<tool><description>{docstring}</description>"
-    xml_description += f"<tool_name>{func_name}</tool_name><parameters>"
-
-    for param_name, param in parameters.items():
-        param_type = param.annotation if param.annotation != param.empty else "unknown"
-        xml_description += f"<parameter><variable_name>{param_name}</variable_name><type>{param_type}</type></parameter>"
-
-    xml_description += "</parameters></tool>"
-
-    # Store the description in the global LLMFNS variable
-    LLMFNS.append(
-        {
-            "function": wrapper,
-            "description": xml_description,
-            "tool_name": func.__name__,
-        }
-    )
-
-    return wrapper

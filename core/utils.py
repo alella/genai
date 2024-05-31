@@ -1,6 +1,7 @@
 from rich.logging import RichHandler
-from rich.console import Console
 import logging
+import hashlib
+import re
 
 
 def setup_logging():
@@ -19,3 +20,8 @@ def setup_logging():
     )
 
     return logging.getLogger(__name__)
+
+
+def hash_this(input_str):
+    hash_value = hashlib.sha256(input_str.encode()).hexdigest()
+    return "".join(re.findall(r"[a-zA-Z0-9]", hash_value))[:20]

@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 from rich.logging import RichHandler
 from rich.console import Console
 import logging
-from llm_utils import Prompt
+from core.prompts import Prompt
 
 
 def setup_logging():

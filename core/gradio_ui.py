@@ -1,6 +1,6 @@
 import gradio as gr
-from claude import Claude
-from llm_utils import Prompt
+from core.claude import Claude
+from core.prompts import Prompt
 
 api = Claude("anthropic.claude-3-haiku-20240307-v1:0")
 

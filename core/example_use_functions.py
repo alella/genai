@@ -1,7 +1,7 @@
-from llm_utils import llm_tool, ToolPrompt, LLMFNS
-from claude import Claude
-from pprint import pprint as pr
-from utils import setup_logging
+from core.llm_utils import llm_tool
+from core.prompts import ToolPrompt
+from core.claude import Claude
+from core.utils import setup_logging
 
 log = setup_logging()
 
@@ -23,7 +23,7 @@ def add(a: int, b: int) -> int:
 
 
 @llm_tool
-def hash(a: int, b: int) -> int:
+def hash(a: int, b: int) -> str:
     """
     computes a unique has using the integers 'a' and 'b'
     """

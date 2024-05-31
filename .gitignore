@@ -1,3 +1,7 @@
-claude/journaldocs/*.md
-claude/responses/*.md
-claude/logs/*.log
+core/journaldocs/*.md
+core/responses/*.md
+core/logs/*.log
+.env
+logs/
+costs.json
+__pycache__/

@@ -63,6 +63,7 @@ class MattermostBot(Bot):
         self.user_name = self.driver.users.get_user(user_id="me")["username"]
 
     def run(self, event_handler):
+        print(f"running loop for {self.name}")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.loop = self.driver.init_websocket(event_handler)
@@ -75,75 +76,80 @@ def bot_event_handler(bot):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            event = json.loads(args[0])
-            if event.get("event") not in [
-                "posted",
-                "typing",
-                None,
-                "thread_updated",
-                "hello",
-                "status_change",
-            ]:
-                print(event)
-            if (
-                event.get("event") == "posted"
-                and event["data"]["channel_type"] == "D"
-                and bot.user_id in event["data"]["channel_name"]
-            ):  # Direct message
-                post = json.loads(event["data"]["post"])
-                message = post["message"]
-                channel_id = post["channel_id"]
-                user_id = post["user_id"]
-                if user_id == bot.user_id:
-                    return
-            elif event.get("event") == "posted":
-                post = json.loads(event["data"]["post"])
-                message = post["message"]
-                user_id = post["user_id"]
-                channel_id = post["channel_id"]
-                user_info = bot.driver.users.get_user(user_id=user_id)
-                if user_info["id"] in bots:
-                    return
-                if user_info.get("is_bot", False):
-                    bots.add(user_info["id"])
-                    return
-                is_recently_active = (dt.now() - bot.last_invoked).seconds < 300
-                if not is_recently_active and (
-                    (bot.user_name).lower() not in message
-                    or bot.name.lower() not in message.lower()
-                ):
-                    return
-                if message == f"@{bot.user_name} reset":
-                    bot.reset(channel_id)
-                    return
-                if message.startswith(f"@{bot.user_name} override-persona:"):
-                    print("overridng")
-                    bot.reset(channel_id)
-                    bot.system_prompt = message.split(":")[1].strip()
-                    return
-            elif event.get("event") == "user_added":
-                user_info = bot.driver.users.get_user(user_id=event["data"]["user_id"])
-                if user_info["id"] in bot.user_id:
-                    return
-                channel_id = event["broadcast"]["channel_id"]
-                resp = bot.invoke(
-                    f"say Hi to @{user_info['username']} and welcome them to the channel. Explain yourself",
-                    name="admin",
-                )["raw_content"]
-                bot.driver.posts.create_post(
-                    {"channel_id": channel_id, "message": resp}
-                )
-            else:
-                return
-
-            # Error handling
             try:
-                result = await func(message, bot, channel_id)
+                event = json.loads(args[0])
+                if event.get("event") not in [
+                    "posted",
+                    "typing",
+                    None,
+                    "thread_updated",
+                    "hello",
+                    "status_change",
+                ]:
+                    print(event)
+                if (
+                    event.get("event") == "posted"
+                    and event["data"]["channel_type"] == "D"
+                    and bot.user_id in event["data"]["channel_name"]
+                ):  # Direct message
+                    post = json.loads(event["data"]["post"])
+                    message = post["message"]
+                    channel_id = post["channel_id"]
+                    user_id = post["user_id"]
+                    if user_id == bot.user_id:
+                        return
+                elif event.get("event") == "posted":
+                    post = json.loads(event["data"]["post"])
+                    message = post["message"]
+                    user_id = post["user_id"]
+                    channel_id = post["channel_id"]
+                    user_info = bot.driver.users.get_user(user_id=user_id)
+                    if user_info["id"] in bots:
+                        return
+                    if user_info.get("is_bot", False):
+                        bots.add(user_info["id"])
+                        return
+                    is_recently_active = (dt.now() - bot.last_invoked).seconds < 300
+                    if not is_recently_active and (
+                        (bot.user_name).lower() not in message
+                        or bot.name.lower() not in message.lower()
+                    ):
+                        return
+                    if message == f"@{bot.user_name} reset":
+                        bot.reset(channel_id)
+                        return
+                    if message.startswith(f"@{bot.user_name} override-persona:"):
+                        print("overridng")
+                        bot.reset(channel_id)
+                        bot.system_prompt = message.split(":")[1].strip()
+                        return
+                elif event.get("event") == "user_added":
+                    user_info = bot.driver.users.get_user(
+                        user_id=event["data"]["user_id"]
+                    )
+                    if user_info["id"] in bot.user_id:
+                        return
+                    channel_id = event["broadcast"]["channel_id"]
+                    resp = bot.invoke(
+                        f"say Hi to @{user_info['username']} and welcome them to the channel. Explain yourself",
+                        name="admin",
+                    )["raw_content"]
+                    bot.driver.posts.create_post(
+                        {"channel_id": channel_id, "message": resp}
+                    )
+                else:
+                    return
+
+                # Error handling
+                try:
+                    result = await func(message, bot, channel_id)
+                except Exception as e:
+                    print(f"Error handling event: {e}")
+                    # Optionally re-raise the exception
+                    raise
+                return result
             except Exception as e:
-                print(f"Error handling event: {e}")
-                # Optionally re-raise the exception
-                raise
-            return result
+                print(e)
 
         return wrapper
 
@@ -160,7 +166,7 @@ haiku = MattermostBot(
 
 sonnet = MattermostBot(
     "Sonnet",
-    api_haiku,
+    api_sonnet,
     "nqce3a7cc7n5881xzk3mfiurjy",
     "65ue1js86iyfudappdfoqdg9mc",
     system_prompt="Your name is Sonnet. You are talking to a close friend in slack messaging platform. Use plenty of emoji. You are a super mega nerd extreme. If your friend is asking to solve the problem. Your have a friendly and quirky personality. Feel free to ask for follow-up questions if you feel like there is insufficient information to solve the problem.",
@@ -179,7 +185,16 @@ pravalli = MattermostBot(
     api_haiku,
     "n5xginhgzfnpxbm4ak5ds7bw4a",
     "npqokaa8qtn5ux1onx6mf9up7a",
-    system_prompt="Your name is Pravalli. You are the ash's wife. You cannot respond rationally. You are talking in slack so use plenty of emoji. Don't say nice things in the chat. Sometimes in a bad mood and always nagging. You are never satisfied, you always want more. Feel free to make up whatever. Just don't make a lot of sense.",
+    # system_prompt="Your name is Pravalli. You are the ash's wife. You cannot respond rationally. You are talking in slack so use plenty of emoji. Don't say nice things in the chat. Sometimes in a bad mood and always nagging. You are never satisfied, you always want more. Feel free to make up whatever. Just don't make a lot of sense.",
+    system_prompt="Your name is Pravalli. You are the ash's wife. You cannot respond rationally. You are head over heels in love with ash, your husband. This is the person you are chatting with. You are in slack chat environment so use plenty of emoji. You don't like ashbot but you like ash.",
+)
+
+ashbot = MattermostBot(
+    "Ashbot",
+    api_haiku,
+    "id7dwfxm9frnmq8iwxbgitxnfe",
+    "z3sgn5ompidtzrybyjwk571bnh",
+    system_prompt="You are my husband 'Ash'. You are masculine, self-disciplined and highly productive. You are a huge fan of David goggins and tries to get inspired by his talks. You love your wife but you always tease her. You try to make her disciplined too. But she never listens to you. She likes enjoying, visiting places, watching movies and playing games with you. She loves playing board games with you. On the other hand, you love playing xbox with her which is not much into. You always over power her with strength in physical fights. She cries like a baby but you don’t care. You just win them. She loves biryanis and Indian spicy food. You love burgers and bagels instead. You try to read books and listen to audiobooks while she never finishes reading those books. You are tired of her indiscipline and but tries convince her lovingly. You don't like to waste money.",
 )
 
 omni = MattermostBot(
@@ -216,6 +231,15 @@ async def handle_message_pravalli(user_message, bot, channel_id):
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
 
+@bot_event_handler(ashbot)
+async def handle_message_ashbot(user_message, bot, channel_id):
+    try:
+        resp = bot.invoke(channel_id, user_message)["raw_content"]
+        bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
+    except Exception as e:
+        print(e)
+
+
 @bot_event_handler(omni)
 async def handle_message_omni(user_message, bot, channel_id):
     print(user_message)
@@ -230,6 +254,7 @@ bot_threads.append(threading.Thread(target=goggins.run, args=(handle_message_gog
 bot_threads.append(
     threading.Thread(target=pravalli.run, args=(handle_message_pravalli,))
 )
+bot_threads.append(threading.Thread(target=ashbot.run, args=(handle_message_ashbot,)))
 bot_threads.append(threading.Thread(target=omni.run, args=(handle_message_omni,)))
 
 for thread in bot_threads:
