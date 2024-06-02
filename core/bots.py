@@ -95,6 +95,7 @@ def bot_event_handler(bot):
                     "thread_updated",
                     "hello",
                     "status_change",
+                    "user_added",
                 ]:
                     print(event)
                 if (
@@ -106,6 +107,7 @@ def bot_event_handler(bot):
                     message = post["message"]
                     channel_id = post["channel_id"]
                     user_id = post["user_id"]
+                    username = bot.driver.users.get_user(user_id=user_id)["username"]
                     if user_id == bot.user_id:
                         return
                 elif event.get("event") == "posted":
@@ -114,6 +116,7 @@ def bot_event_handler(bot):
                     user_id = post["user_id"]
                     channel_id = post["channel_id"]
                     user_info = bot.driver.users.get_user(user_id=user_id)
+                    username = user_info["username"]
                     if user_info["id"] in bots:
                         return
                     if user_info.get("is_bot", False):
@@ -152,7 +155,7 @@ def bot_event_handler(bot):
 
                 # Error handling
                 try:
-                    result = await func(message, bot, channel_id)
+                    result = await func(message, bot, channel_id, username)
                 except Exception as e:
                     print(f"Error handling event: {e}")
                     # Optionally re-raise the exception
