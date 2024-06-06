@@ -25,23 +25,21 @@ class MarqoIndexer:
             logger.info(f"Creating index {index_name} as it doesn't exist")
             self.mq.create_index(index_name)
 
-        ctr = 0
         for root, dirs, files in os.walk(directory_path):
             for file in files:
-                if ctr > 10:
-                    break
                 file_path = os.path.join(root, file)
                 if parser.is_picked(file_path):
-                    ctr += 1
                     logger.info(
                         f"Parsing file {file_path} with parser {parser.__class__.__name__}"
                     )
-                    with open(file_path, "r") as f:
-                        raw_content = f.read()
-                    doc = parser.parse(file_path, raw_content)
-                    self.mq.index(index_name).add_documents(
-                        [doc.encode()], tensor_fields=["content"]
-                    )
+                    docs = parser.parse(file_path)
+                    for i, doc in enumerate(docs):
+                        logger.info(
+                            f"Indexing file {file_path}, part {i} or {len(docs)}"
+                        )
+                        self.mq.index(index_name).add_documents(
+                            [doc.encode()], tensor_fields=["content"]
+                        )
                 else:
                     logger.info(f"Ignoring file {file_path}")
 

@@ -122,7 +122,7 @@ def bot_event_handler(bot):
                     if user_info.get("is_bot", False):
                         bots.add(user_info["id"])
                         return
-                    is_recently_active = (dt.now() - bot.last_invoked).seconds < 300
+                    is_recently_active = (dt.now() - bot.last_invoked).seconds < 600
                     if not is_recently_active and (
                         (bot.user_name).lower() not in message
                         or bot.name.lower() not in message.lower()

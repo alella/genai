@@ -18,6 +18,7 @@ gradio = "*"
 setuptools = "*"
 mattermostdriver = "*"
 openai = "*"
+pypdf2 = "*"
 
 [dev-packages]
 black = "*"
