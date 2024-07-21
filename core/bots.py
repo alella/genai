@@ -3,6 +3,8 @@ import json
 from datetime import datetime as dt
 from mattermostdriver import Driver
 from functools import wraps
+from core.llm_utils import ChatMessage
+import pprint
 
 from core.prompts import Messages
 
@@ -60,7 +62,13 @@ class MattermostBot(Bot):
         api_type="claude",
         server_url="10.0.0.226",
     ):
-        super().__init__(name, api, system_prompt=system_prompt, api_type=api_type, max_message_count=max_message_count)
+        super().__init__(
+            name,
+            api,
+            system_prompt=system_prompt,
+            api_type=api_type,
+            max_message_count=max_message_count,
+        )
         self.driver = Driver(
             {
                 "url": server_url,
@@ -73,6 +81,7 @@ class MattermostBot(Bot):
             }
         )
         self.driver.login()
+        self.access_token = access_token
         self.user_id = self.driver.users.get_user(user_id="me")["id"]
         self.user_name = self.driver.users.get_user(user_id="me")["username"]
 
@@ -91,6 +100,7 @@ def bot_event_handler(bot):
         async def wrapper(*args, **kwargs):
             try:
                 event = json.loads(args[0])
+
                 if event.get("event") not in [
                     "posted",
                     "typing",
@@ -99,6 +109,7 @@ def bot_event_handler(bot):
                     "hello",
                     "status_change",
                     "user_added",
+                    "post_detected",
                 ]:
                     print(event)
                 if (
@@ -107,7 +118,7 @@ def bot_event_handler(bot):
                     and bot.user_id in event["data"]["channel_name"]
                 ):  # Direct message
                     post = json.loads(event["data"]["post"])
-                    message = post["message"]
+                    message = ChatMessage(post["message"])
                     channel_id = post["channel_id"]
                     user_id = post["user_id"]
                     username = bot.driver.users.get_user(user_id=user_id)["username"]
@@ -115,7 +126,7 @@ def bot_event_handler(bot):
                         return
                 elif event.get("event") == "posted":
                     post = json.loads(event["data"]["post"])
-                    message = post["message"]
+                    message = ChatMessage(post["message"])
                     user_id = post["user_id"]
                     channel_id = post["channel_id"]
                     user_info = bot.driver.users.get_user(user_id=user_id)
@@ -127,17 +138,20 @@ def bot_event_handler(bot):
                         return
                     is_recently_active = (dt.now() - bot.last_invoked).seconds < 600
                     if not is_recently_active and (
-                        (bot.user_name).lower() not in message
-                        or bot.name.lower() not in message.lower()
+                        (bot.user_name).lower() not in message.text
+                        or bot.name.lower() not in message.text.lower()
                     ):
                         return
-                    if message == f"@{bot.user_name} reset" or message == 'reset':
+                    if (
+                        message.text == f"@{bot.user_name} reset"
+                        or message.text == "reset"
+                    ):
                         bot.reset(channel_id)
                         return
-                    if message.startswith(f"@{bot.user_name} override-persona:"):
+                    if message.text.startswith(f"@{bot.user_name} override-persona:"):
                         print("overridng")
                         bot.reset(channel_id)
-                        bot.system_prompt = message.split(":")[1].strip()
+                        bot.system_prompt = message.text.split(":")[1].strip()
                         return
                 elif event.get("event") == "user_added":
                     user_info = bot.driver.users.get_user(
@@ -155,6 +169,13 @@ def bot_event_handler(bot):
                     )
                 else:
                     return
+
+                # Look for attachments
+                if "metadata" in post and "files" in post["metadata"]:
+                    message.attachments = []
+                    for file in post["metadata"]["files"]:
+                        message.attachments.append(file)
+                print(message.attachments)
 
                 # Error handling
                 try:

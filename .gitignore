@@ -5,3 +5,4 @@ core/logs/*.log
 logs/
 costs.json
 __pycache__/
+core/niwrejections/*

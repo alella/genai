@@ -1,5 +1,12 @@
 import inspect
 from functools import wraps
+from dataclasses import dataclass, field
+
+
+@dataclass
+class ChatMessage:
+    text: str
+    attachments: list = field(default_factory=list)
 
 
 # Global variable to store function descriptions

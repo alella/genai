@@ -20,6 +20,7 @@ mattermostdriver = "*"
 openai = "*"
 pypdf2 = "*"
 ollama = "*"
+python-docx = "*"
 
 [dev-packages]
 black = "*"
