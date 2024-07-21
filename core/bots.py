@@ -13,7 +13,7 @@ class Bot:
         name,
         api,
         system_prompt="",
-        max_message_count=20,
+        max_message_count=8,
         api_type="claude",
     ):
         self.name = name
@@ -24,7 +24,7 @@ class Bot:
         self.last_invoked = dt.strptime("01/01/1970", "%d/%m/%Y")
         self.api_type = api_type
 
-    def invoke(self, context: str, message: str):
+    def invoke(self, context: str, message: str, tokens=1024):
         context_hash = hash(context)
         if context_hash not in self.history:
             self.history[context_hash] = Messages(max_count=self.max_message_count)
@@ -32,10 +32,12 @@ class Bot:
         self.history[context_hash].push("user", message)
         if self.api_type == "openai":
             messages = self.history[context_hash].get_openai_messages()
+        elif self.api_type == "ollama":
+            messages = self.history[context_hash].get_ollama_messages()
         else:
             messages = self.history[context_hash].get_claude_messsages()
 
-        resp = self.api.invoke_chat(messages, self.system_prompt)
+        resp = self.api.invoke_chat(messages, self.system_prompt, tokens=tokens)
         self.history[context_hash].push("assistant", resp["raw_content"])
         self.last_invoked = dt.now()
         return resp
@@ -53,11 +55,12 @@ class MattermostBot(Bot):
         name,
         api,
         access_token,
+        max_message_count=8,
         system_prompt="",
         api_type="claude",
         server_url="10.0.0.226",
     ):
-        super().__init__(name, api, system_prompt=system_prompt, api_type=api_type)
+        super().__init__(name, api, system_prompt=system_prompt, api_type=api_type, max_message_count=max_message_count)
         self.driver = Driver(
             {
                 "url": server_url,
@@ -128,7 +131,7 @@ def bot_event_handler(bot):
                         or bot.name.lower() not in message.lower()
                     ):
                         return
-                    if message == f"@{bot.user_name} reset":
+                    if message == f"@{bot.user_name} reset" or message == 'reset':
                         bot.reset(channel_id)
                         return
                     if message.startswith(f"@{bot.user_name} override-persona:"):

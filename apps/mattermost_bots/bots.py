@@ -7,12 +7,15 @@ from pprint import pprint as pr
 from core.claude import Claude
 from core.bots import MattermostBot, bot_event_handler
 from core.clients.openai_client import OpenAIClient
+from core.clients.ollama_client import OllamaClient
 from time import sleep
 
 
 api_haiku = Claude("anthropic.claude-3-haiku-20240307-v1:0")
 api_sonnet = Claude("anthropic.claude-3-sonnet-20240229-v1:0")
 api_omni = OpenAIClient("gpt-4o")
+api_llama = OllamaClient("llama3")
+MAX_TOKENS = 4096
 
 
 haiku = MattermostBot(
@@ -53,16 +56,25 @@ omni = MattermostBot(
     api_type="openai",
 )
 
+llama = MattermostBot(
+    "Llama",
+    api_llama,
+    "zu1o64cobffmbq9so331riq4mc",
+    max_message_count=20,
+    system_prompt="Your name is Ollama. You are a helpful assistant in slack messaging platform. Remember you can use emoji.",
+    api_type="ollama",
+)
+
 
 @bot_event_handler(haiku)
 async def handle_message_haiku(user_message, bot, channel_id, _username):
-    resp = bot.invoke(channel_id, user_message)["raw_content"]
+    resp = bot.invoke(channel_id, user_message, tokens=MAX_TOKENS)["raw_content"]
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
 
 @bot_event_handler(sonnet)
 async def handle_message_sonnet(user_message, bot, channel_id, _username):
-    resp = bot.invoke(channel_id, user_message)["raw_content"]
+    resp = bot.invoke(channel_id, user_message, tokens=MAX_TOKENS)["raw_content"]
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
 
@@ -84,6 +96,12 @@ async def handle_message_omni(user_message, bot, channel_id, _username):
     resp = bot.invoke(channel_id, user_message)["raw_content"]
     bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
 
+@bot_event_handler(llama)
+async def handle_message_llama(user_message, bot, channel_id, _username):
+    print(user_message)
+    resp = bot.invoke(channel_id, user_message)["raw_content"]
+    bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
+
 
 bot_threads = []
 bot_threads.append(threading.Thread(target=haiku.run, args=(handle_message_haiku,)))
@@ -93,6 +111,7 @@ bot_threads.append(threading.Thread(target=sonnet.run, args=(handle_message_sonn
 # )
 # bot_threads.append(threading.Thread(target=ashbot.run, args=(handle_message_ashbot,)))
 bot_threads.append(threading.Thread(target=omni.run, args=(handle_message_omni,)))
+bot_threads.append(threading.Thread(target=llama.run, args=(handle_message_llama,)))
 
 for thread in bot_threads:
     thread.start()

@@ -19,6 +19,7 @@ setuptools = "*"
 mattermostdriver = "*"
 openai = "*"
 pypdf2 = "*"
+ollama = "*"
 
 [dev-packages]
 black = "*"

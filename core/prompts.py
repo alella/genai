@@ -38,6 +38,9 @@ class Messages:
             messages.append({"role": msg["role"], "content": msg["text"]})
         return messages
 
+    def get_ollama_messages(self):
+        return self.get_openai_messages()
+
     def get_messages(self, count=20):
         messages = ""
         for msg in self._messages[-count:]:

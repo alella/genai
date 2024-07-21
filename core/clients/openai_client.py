@@ -9,7 +9,7 @@ class OpenAIClient:
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
 
-    def invoke_chat(self, messages, system=""):
+    def invoke_chat(self, messages, system="", tokens=None):
         if system:
             messages = [{"role": "system", "content": system}] + messages
         else:
