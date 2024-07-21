@@ -110,6 +110,7 @@ def bot_event_handler(bot):
                     "status_change",
                     "user_added",
                     "post_detected",
+                    "reaction_added",
                 ]:
                     print(event)
                 if (
@@ -175,11 +176,18 @@ def bot_event_handler(bot):
                     message.attachments = []
                     for file in post["metadata"]["files"]:
                         message.attachments.append(file)
-                print(message.attachments)
 
                 # Error handling
                 try:
+                    params = {
+                        "user_id": bot.user_id,
+                        "post_id": post["id"],
+                        "emoji_name": "thinking_face",
+                    }
+                    bot.driver.reactions.create_reaction(options=params)
                     result = await func(message, bot, channel_id, username)
+                    params["emoji_name"] = "white_check_mark"
+                    bot.driver.reactions.create_reaction(options=params)
                 except Exception as e:
                     print(f"Error handling event: {e}")
                     # Optionally re-raise the exception

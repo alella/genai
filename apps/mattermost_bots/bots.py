@@ -120,9 +120,14 @@ async def handle_message_llama(chat_message: ChatMessage, bot, channel_id, _user
             chat_message.attachments, bot.access_token
         )
         chat_message.text += f"\n-----\n\nThis message contains the following file attachments. This is the content of the uploaded files:\n{attachment_text}"
-        print(chat_message.text)
-    resp = bot.invoke(channel_id, chat_message.text)["raw_content"]
-    bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
+    resp = bot.invoke(channel_id, chat_message.text)
+    root = bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": resp["raw_content"]}
+    )
+    root_id = root["id"]
+    bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": resp["debug"], "root_id": root_id}
+    )
 
 
 bot_threads = []
