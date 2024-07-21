@@ -52,6 +52,7 @@ class Claude:
         self.client = client
         self.model_id = model_id
         self.session_cost = 0
+        self.session_start_time = dt.now().strftime("%Y %b %d, %I:%M %p")
         self.model_costs = {
             "anthropic.claude-3-sonnet-20240229-v1:0": {
                 "input_cost": 0.003 * 0.001,
@@ -152,6 +153,7 @@ class Claude:
                 "cost": self._calc_cost(input_tokens, output_tokens),
                 "cost_str": f"{self._calc_cost(input_tokens, output_tokens)} USD",
                 "session_cost": self.session_cost,
+                "session_start_time": self.session_start_time,
             }
 
             return output

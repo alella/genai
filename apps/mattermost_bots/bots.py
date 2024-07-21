@@ -97,20 +97,51 @@ llama = MattermostBot(
 
 @bot_event_handler(haiku)
 async def handle_message_haiku(chat_message: ChatMessage, bot, channel_id, _username):
-    resp = bot.invoke(channel_id, chat_message.text)["raw_content"]
-    bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
+    resp = bot.invoke(channel_id, chat_message.text)
+    debug_info = (
+        f"\n**Cost**: {resp['cost_str']}"
+        f"\n**Input Tokens**: {resp['input_tokens']} tokens"
+        f"\n**Max Output Tokens set**: {resp['max_output_tokens']} tokens"
+        f"\n**Output Tokens**: {resp['output_tokens']} tokens"
+        f"\n**Session Cost**: {resp['session_cost']:.3f} USD"
+        f"\n**Session Start time**: {resp['session_start_time']}"
+    )
+    root = bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": resp["raw_content"]}
+    )
+    bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": debug_info, "root_id": root["id"]}
+    )
 
 
 @bot_event_handler(sonnet)
 async def handle_message_sonnet(chat_message: ChatMessage, bot, channel_id, _username):
-    resp = bot.invoke(channel_id, chat_message.text)["raw_content"]
-    bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
+    resp = bot.invoke(channel_id, chat_message.text)
+    debug_info = (
+        f"\n**Cost**: {resp['cost_str']}"
+        f"\n**Input Tokens**: {resp['input_tokens']} tokens"
+        f"\n**Max Output Tokens set**: {resp['max_output_tokens']} tokens"
+        f"\n**Output Tokens**: {resp['output_tokens']} tokens"
+        f"\n**Session Cost**: {resp['session_cost']:.3f} USD"
+        f"\n**Session Start time**: {resp['session_start_time']}"
+    )
+    root = bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": resp["raw_content"]}
+    )
+    bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": debug_info, "root_id": root["id"]}
+    )
 
 
 @bot_event_handler(omni)
 async def handle_message_omni(chat_message: ChatMessage, bot, channel_id, _username):
-    resp = bot.invoke(channel_id, chat_message.text)["raw_content"]
-    bot.driver.posts.create_post({"channel_id": channel_id, "message": resp})
+    resp = bot.invoke(channel_id, chat_message.text)
+    root = bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": resp["raw_content"]}
+    )
+    bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": resp["debug"], "root_id": root["id"]}
+    )
 
 
 @bot_event_handler(llama)
@@ -122,11 +153,7 @@ async def handle_message_llama(chat_message: ChatMessage, bot, channel_id, _user
         chat_message.text += f"\n-----\n\nThis message contains the following file attachments. This is the content of the uploaded files:\n{attachment_text}"
     resp = bot.invoke(channel_id, chat_message.text)
     root = bot.driver.posts.create_post(
-        {"channel_id": channel_id, "message": resp["raw_content"]}
-    )
-    root_id = root["id"]
-    bot.driver.posts.create_post(
-        {"channel_id": channel_id, "message": resp["debug"], "root_id": root_id}
+        {"channel_id": channel_id, "message": resp["debug"], "root_id": root["id"]}
     )
 
 

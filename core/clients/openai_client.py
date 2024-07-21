@@ -18,4 +18,9 @@ class OpenAIClient:
             messages=messages,
             model=self.model,
         )
-        return {"raw_content": response.choices[0].message.content}
+        debug_info = (
+            f"\n**Completion Tokens**: {response.usage.completion_tokens}"
+            f"\n**Prompt Tokens**: {response.usage.prompt_tokens}"
+            f"\n**Total Tokens**: {response.usage.total_tokens}"
+        )
+        return {"raw_content": response.choices[0].message.content, "debug": debug_info}
