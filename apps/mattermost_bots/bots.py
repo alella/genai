@@ -19,7 +19,7 @@ import docx
 api_haiku = Claude("anthropic.claude-3-haiku-20240307-v1:0")
 api_sonnet = Claude("anthropic.claude-3-sonnet-20240229-v1:0")
 api_omni = OpenAIClient("gpt-4o")
-api_llama = OllamaClient("dolphin-llama3")
+api_llama = OllamaClient("llama3")
 MAX_TOKENS = 4096
 
 
