@@ -12,7 +12,9 @@ class OllamaClient:
             messages = [{"role": "system", "content": system}] + messages
         else:
             messages = messages.get_ollama_messages()
-        response = self.client.chat(model=self.model, messages=messages)
+        response = self.client.chat(
+            model=self.model, messages=messages, options={"num_ctx": tokens}
+        )
 
         total_duration = int(response["total_duration"]) / 1000000000
         debug_info = (
@@ -26,3 +28,17 @@ class OllamaClient:
             "raw_content": response["message"]["content"],
             "debug": debug_info,
         }
+
+    def invoke(self, message: str, system="", tokens=4096):
+        if system:
+            messages = [{"role": "system", "content": system}] + [
+                {"role": "user", "content": message}
+            ]
+        else:
+            messages = [{"role": "user", "content": message}]
+        response = self.client.chat(
+            model=self.model,
+            messages=messages,
+            options={"num_ctx": tokens, "format": "json"},
+        )
+        return {"raw_content": response["message"]["content"]}
