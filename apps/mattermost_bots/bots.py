@@ -36,7 +36,7 @@ def attachments_to_text(attachments, token):
         filename = f"{tmp_dir}/{attachment['name']}"
         with open(filename, "wb") as fp:
             response = requests.get(
-                f"http://mattermost.prash.xyz/api/v4/files/{attachment['id']}?download=1",
+                f"http://10.0.0.226:8065/api/v4/files/{attachment['id']}?download=1",
                 timeout=60,
                 headers={"Authorization": f"Bearer {token}"},
             )
