@@ -61,7 +61,7 @@ class MarqoIndexer:
 
 class MarqoSearcher:
     def __init__(self):
-        self.url = os.environ.get("MARQO_DB_URL", "http://localhost:8882")
+        self.url = os.environ.get("MARQO_DB_URL", "http://10.0.0.9:8882")
         self.mq = marqo.Client(url=self.url)
 
     def get_context(self, query, body, window_length):
