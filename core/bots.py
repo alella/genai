@@ -111,6 +111,7 @@ def bot_event_handler(bot):
                     "user_added",
                     "post_detected",
                     "reaction_added",
+                    "reaction_removed",
                 ]:
                     print(event)
                 if (
@@ -119,7 +120,7 @@ def bot_event_handler(bot):
                     and bot.user_id in event["data"]["channel_name"]
                 ):  # Direct message
                     post = json.loads(event["data"]["post"])
-                    message = ChatMessage(post["message"])
+                    message = ChatMessage(post["message"], type="text")
                     channel_id = post["channel_id"]
                     user_id = post["user_id"]
                     username = bot.driver.users.get_user(user_id=user_id)["username"]
@@ -127,7 +128,7 @@ def bot_event_handler(bot):
                         return
                 elif event.get("event") == "posted":
                     post = json.loads(event["data"]["post"])
-                    message = ChatMessage(post["message"])
+                    message = ChatMessage(post["message"], type="text")
                     user_id = post["user_id"]
                     channel_id = post["channel_id"]
                     user_info = bot.driver.users.get_user(user_id=user_id)
@@ -168,26 +169,35 @@ def bot_event_handler(bot):
                     bot.driver.posts.create_post(
                         {"channel_id": channel_id, "message": resp}
                     )
+                elif event.get("event") == "reaction_added":
+                    reaction_data = event.get("data")["reaction"]
+                    message = ChatMessage(reaction_data, type="reaction")
+                    channel_id = json.loads(event.get("data")["reaction"])["channel_id"]
+                    user_id = json.loads(event.get("data")["reaction"])["user_id"]
+                    username = bot.driver.users.get_user(user_id=user_id)["username"]
                 else:
                     return
 
                 # Look for attachments
-                if "metadata" in post and "files" in post["metadata"]:
-                    message.attachments = []
-                    for file in post["metadata"]["files"]:
-                        message.attachments.append(file)
+                if message.type == "text":
+                    if "metadata" in post and "files" in post["metadata"]:
+                        message.attachments = []
+                        for file in post["metadata"]["files"]:
+                            message.attachments.append(file)
 
                 # Error handling
                 try:
-                    params = {
-                        "user_id": bot.user_id,
-                        "post_id": post["id"],
-                        "emoji_name": "thinking_face",
-                    }
-                    bot.driver.reactions.create_reaction(options=params)
+                    if message.type == "text":
+                        params = {
+                            "user_id": bot.user_id,
+                            "post_id": post["id"],
+                            "emoji_name": "thinking_face",
+                        }
+                        bot.driver.reactions.create_reaction(options=params)
                     result = await func(message, bot, channel_id, username)
-                    params["emoji_name"] = "white_check_mark"
-                    bot.driver.reactions.create_reaction(options=params)
+                    if message.type == "text":
+                        params["emoji_name"] = "white_check_mark"
+                        bot.driver.reactions.create_reaction(options=params)
                 except Exception as e:
                     print(f"Error handling event: {e}")
                     # Optionally re-raise the exception

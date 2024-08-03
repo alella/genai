@@ -1,12 +1,14 @@
 import inspect
 from functools import wraps
 from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass
 class ChatMessage:
     text: str
     attachments: list = field(default_factory=list)
+    type: Optional[str] = ""
 
 
 # Global variable to store function descriptions

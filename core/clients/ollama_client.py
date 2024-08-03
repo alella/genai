@@ -17,12 +17,12 @@ class OllamaClient:
         )
 
         total_duration = int(response["total_duration"]) / 1000000000
-        debug_info = (
-            f"\n**Done Reason**: {response['done_reason']}"
-            f"\n**Done**: {response['done']}"
-            f"\n**Total Duration**: {total_duration:.1f} sec"
-            f"\n**Output Tokens**: {response['eval_count']} tokens"
-        )
+        debug_info = {
+            "Done Reason": response["done_reason"],
+            "Done": response["done"],
+            "Total Duration": f"{total_duration:.1f} sec",
+            "Output Tokens": f"{response['eval_count']} tokens",
+        }
 
         return {
             "raw_content": response["message"]["content"],

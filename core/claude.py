@@ -5,11 +5,11 @@ import time
 import boto3
 from datetime import datetime as dt
 from botocore.exceptions import ClientError
-import xml.etree.ElementTree as ET
 from rich.logging import RichHandler
 from rich.console import Console
 import logging
 from core.prompts import Prompt
+from core.utils import xml_to_json
 
 
 def setup_logging():
@@ -141,7 +141,7 @@ class Claude:
             for i, output_item in enumerate(output_list):
                 content = output_item["text"]
                 break
-            objs = self._xml_to_json(content)
+            objs = xml_to_json(content)
             output = {
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
@@ -165,51 +165,6 @@ class Claude:
                 err.response["Error"]["Message"],
             )
             raise
-
-    def _xml_to_json(self, input_str):
-        def _xml_to_dict(element):
-            if len(element) == 0:  # if the element has no children
-                return element.text
-            d = {}
-            for child in element:
-                if child.tag not in d:
-                    d[child.tag] = _xml_to_dict(child)
-                else:
-                    if isinstance(d[child.tag], list):
-                        d[child.tag].append(_xml_to_dict(child))
-                    else:
-                        d[child.tag] = [d[child.tag]] + [_xml_to_dict(child)]
-            return d
-
-        data = {
-            tag: text.strip()
-            for tag, text in re.findall(r"<(\w+)>(.*?)<\/\1>", input_str, re.DOTALL)
-        }
-        if "tool_invoke" in data:
-            root = ET.fromstring("<x>" + data["tool_invoke"] + "</x>")
-            data["tool_invoke"] = _xml_to_dict(root)
-            if isinstance(data["tool_invoke"]["invoke"], list):
-                data["tool_invoke"] = data["tool_invoke"]["invoke"]
-            if isinstance(data["tool_invoke"], dict):
-                data["tool_invoke"] = [data["tool_invoke"]["invoke"]]
-
-        if "dag" in data:
-            root = ET.fromstring("<x>" + data["dag"] + "</x>")
-            children = _xml_to_dict(root)["node"]
-            for child in children:
-                if "children" in child:
-                    child["children"] = [
-                        x.strip() for x in child["children"].split(",")
-                    ]
-                if "previous" in child and child["previous"] == "None":
-                    child["previous"] = []
-                if "previous" in child and isinstance(child["previous"], str):
-                    child["previous"] = [
-                        x.strip() for x in child["previous"].split(",")
-                    ]
-            data["dag"] = children
-
-        return data
 
     def invoke_chat(self, messages, system, tokens=1024):
         response = self.invoke_claude_3_with_text(

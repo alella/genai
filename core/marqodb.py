@@ -1,8 +1,9 @@
 import os
 import marqo
 import logging
-
+from core.utils import hash_this
 from core.file_parsers import FileParserBase
+from core.document_types import MarqoSnippet
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +44,24 @@ class MarqoIndexer:
                 else:
                     logger.info(f"Ignoring file {file_path}")
 
+    def index_snippet(self, index_name, user, snippet):
+        if not index_name in [x["indexName"] for x in self.mq.get_indexes()["results"]]:
+            logger.info(f"Creating index {index_name} as it doesn't exist")
+            self.mq.create_index(index_name)
+        snip = MarqoSnippet(
+            content=snippet,
+            _id=hash_this(snippet),
+            user=user,
+        )
+        print(snip.encode())
+        return self.mq.index(index_name).add_documents(
+            [snip.encode()], tensor_fields=["content"]
+        )
+
 
 class MarqoSearcher:
-    def __init__(self, url="http://localhost:8882"):
-        self.url = os.environ.get("MARQO_DB_URL", url)
+    def __init__(self):
+        self.url = os.environ.get("MARQO_DB_URL", "http://localhost:8882")
         self.mq = marqo.Client(url=self.url)
 
     def get_context(self, query, body, window_length):
