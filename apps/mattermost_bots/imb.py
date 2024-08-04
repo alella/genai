@@ -12,7 +12,7 @@ from openai import OpenAI
 api_llama = OllamaClient("llama3.1")
 
 
-api_token = "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"
+api_token = os.environ.get("HUGGINGFACE_API_KEY")
 os.environ["HUGGINGFACE_HUB_TOKEN"] = api_token
 login(token=api_token)
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
