@@ -221,6 +221,7 @@ async def handle_message_nemo(chat_message: ChatMessage, bot, channel_id, userna
     if chat_message.type == "reaction":
         reaction = json.loads(chat_message.text)
         emoji = reaction["emoji_name"]
+        print(f"should I react to : {emoji}")
         if emoji in ["memo", "clipboard"]:
             mi = MarqoIndexer()
             post_id = reaction["post_id"]
@@ -235,6 +236,7 @@ async def handle_message_nemo(chat_message: ChatMessage, bot, channel_id, userna
                 Return the fact in <fact> xml tag.\n<text_message>\n{msg}\n</text_message>""",
             )
             facts = xml_to_json(fact["raw_content"])
+            print(facts)
             if "fact" in facts:
                 bot.driver.posts.create_post(
                     {"channel_id": channel_id, "message": facts["fact"]}
