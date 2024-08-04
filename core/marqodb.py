@@ -76,9 +76,17 @@ class MarqoSearcher:
         return body[start_word:end_word]
 
     def search(
-        self, index_name, query, limit=8, score_threshold=0.8, result_window_length=500
+        self,
+        index_name,
+        query,
+        limit=8,
+        score_threshold=0.8,
+        result_window_length=500,
+        filter_string=None,
     ):
-        results = self.mq.index(index_name).search(q=query, limit=limit)
+        results = self.mq.index(index_name).search(
+            q=query, limit=limit, filter_string=filter_string
+        )
         results = [t for t in results["hits"] if t["_score"] > score_threshold]
         results = [
             self.get_context(

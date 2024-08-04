@@ -9,6 +9,7 @@ class ChatMessage:
     text: str
     attachments: list = field(default_factory=list)
     type: Optional[str] = ""
+    fromUserId: Optional[str] = ""
 
 
 # Global variable to store function descriptions

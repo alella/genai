@@ -120,16 +120,20 @@ def bot_event_handler(bot):
                     and bot.user_id in event["data"]["channel_name"]
                 ):  # Direct message
                     post = json.loads(event["data"]["post"])
-                    message = ChatMessage(post["message"], type="text")
                     channel_id = post["channel_id"]
                     user_id = post["user_id"]
+                    message = ChatMessage(
+                        post["message"], type="text", fromUserId=user_id
+                    )
                     username = bot.driver.users.get_user(user_id=user_id)["username"]
                     if user_id == bot.user_id:
                         return
                 elif event.get("event") == "posted":
                     post = json.loads(event["data"]["post"])
-                    message = ChatMessage(post["message"], type="text")
                     user_id = post["user_id"]
+                    message = ChatMessage(
+                        post["message"], type="text", fromUserId=user_id
+                    )
                     channel_id = post["channel_id"]
                     user_info = bot.driver.users.get_user(user_id=user_id)
                     username = user_info["username"]

@@ -184,6 +184,7 @@ def retrieve_memory(user_id, text):
 
 @bot_event_handler(llama)
 async def handle_message_llama(chat_message: ChatMessage, bot, channel_id, _username):
+    print("llama")
     mi = MarqoSearcher()
     if chat_message.type != "text":
         return
@@ -193,7 +194,9 @@ async def handle_message_llama(chat_message: ChatMessage, bot, channel_id, _user
         )
         chat_message.text += f"\n-----\n\nThis message contains the following file attachments. This is the content of the uploaded files:\n{attachment_text}"
 
-    results = mi.search("memory", chat_message.text)
+    results = mi.search(
+        "memory", chat_message.text, filter_string=f"user:{chat_message.fromUserId}"
+    )
     if results:
         chat_message.text += format_memory(results)
 
