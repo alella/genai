@@ -236,6 +236,7 @@ async def handle_message_nemo(chat_message: ChatMessage, bot, channel_id, userna
                 Return the fact in <fact> xml tag.\n<text_message>\n{msg}\n</text_message>""",
             )
             facts = xml_to_json(fact["raw_content"])
+            print(fact)
             print(facts)
             if "fact" in facts:
                 bot.driver.posts.create_post(

@@ -77,4 +77,4 @@ def brave_search_str(query):
     return res
 
 
-print(brave_search_str("Who is runing for president in 2024"))
+# print(brave_search_str("Who is runing for president in 2024"))
