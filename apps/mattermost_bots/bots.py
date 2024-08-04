@@ -263,9 +263,9 @@ async def handle_message_nemo(chat_message: ChatMessage, bot, channel_id, userna
 
 
 bot_threads = []
-# bot_threads.append(threading.Thread(target=haiku.run, args=(handle_message_haiku,)))
-# bot_threads.append(threading.Thread(target=sonnet.run, args=(handle_message_sonnet,)))
-# bot_threads.append(threading.Thread(target=omni.run, args=(handle_message_omni,)))
+bot_threads.append(threading.Thread(target=haiku.run, args=(handle_message_haiku,)))
+bot_threads.append(threading.Thread(target=sonnet.run, args=(handle_message_sonnet,)))
+bot_threads.append(threading.Thread(target=omni.run, args=(handle_message_omni,)))
 bot_threads.append(threading.Thread(target=llama.run, args=(handle_message_llama,)))
 bot_threads.append(threading.Thread(target=nemo.run, args=(handle_message_nemo,)))
 
