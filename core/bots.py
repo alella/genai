@@ -167,8 +167,7 @@ def bot_event_handler(bot):
                         return
                     channel_id = event["broadcast"]["channel_id"]
                     resp = bot.invoke(
-                        f"say Hi to @{user_info['username']} and welcome them to the channel. Explain yourself",
-                        name="admin",
+                        f"say Hi to @{user_info['username']} and welcome them to the channel. Explain yourself"
                     )["raw_content"]
                     bot.driver.posts.create_post(
                         {"channel_id": channel_id, "message": resp}

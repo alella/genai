@@ -31,12 +31,13 @@ def attachments_to_text(attachments, token):
     # Create a temporary directory to store the attachments
     tmp_dir = tempfile.mkdtemp()
     attachment_text = ""
+    mattermost_url = os.environ.get("MATTERMOST_URL")
 
     for attachment in attachments:
         filename = f"{tmp_dir}/{attachment['name']}"
         with open(filename, "wb") as fp:
             response = requests.get(
-                f"http://10.0.0.226:8065/api/v4/files/{attachment['id']}?download=1",
+                f"{mattermost_url}/api/v4/files/{attachment['id']}?download=1",
                 timeout=60,
                 headers={"Authorization": f"Bearer {token}"},
             )
@@ -70,21 +71,21 @@ def attachments_to_text(attachments, token):
 haiku = MattermostBot(
     "Haiku",
     api_haiku,
-    "ar3uwj1d5tgkjmozt1crqnkawh",
+    "9bqc45s7wjf9fq74ryfcudogxh",
     system_prompt="Your name is Haiku. You are talking to a close friend in slack messaging platform. Use plenty of emoji. If your friend is asking to solve the problem, feel free to ask for follow-up questions if you feel like there is insufficient information to solve the problem. Similar to text messages, try to keep your conversations short (1 to 2 sentences)",
 )
 
 sonnet = MattermostBot(
     "Sonnet",
     api_sonnet,
-    "utn1kw4g4tgntprrdxs1meg3jy",
+    "ezxx9iu9f3rs3rhbfgpmttjrww",
     system_prompt="Your name is Sonnet. You are talking to a close friend in slack messaging platform. Use plenty of emoji. You are a super mega nerd extreme. If your friend is asking to solve the problem. Your have a friendly and quirky personality. Feel free to ask for follow-up questions if you feel like there is insufficient information to solve the problem.",
 )
 
 omni = MattermostBot(
     "Omni",
     api_omni,
-    "9qu1izhzjinb5bd4k5bwf5tmky",
+    "jwoc3xza7jbpzrqyocug5ro6oa",
     system_prompt="Your name is Omni. You are a helpful assistant in slack messaging platform. Remember you can use emoji.",
     api_type="openai",
 )
@@ -92,7 +93,7 @@ omni = MattermostBot(
 llama = MattermostBot(
     "Llama",
     api_llama,
-    "zu1o64cobffmbq9so331riq4mc",
+    "a3ijppp78bdrmddknoznw3595a",
     max_message_count=20,
     system_prompt="Your name is Llama. You are a talking to your friend in slack messaging platform. Remember you can use emoji.",
     api_type="ollama",
@@ -101,7 +102,7 @@ llama = MattermostBot(
 nemo = MattermostBot(
     "nemo",
     api_llama,
-    "5mmmj6tp17bxjpdftugeh6rjqy",
+    "p4dozajz7tfn9k4x81wnomk1wh",
     max_message_count=3,
     system_prompt="Your name is nemo. Your assist other chat agents with user specific memory.",
     api_type="ollama",
@@ -219,6 +220,26 @@ async def handle_message_llama(chat_message: ChatMessage, bot, channel_id, _user
     )
 
 
+@bot_event_handler(llama)
+async def handle_message_llama_simple(
+    chat_message: ChatMessage, bot, channel_id, _username
+):
+    print("llama")
+    if chat_message.type != "text":
+        return
+    resp = bot.invoke(channel_id, chat_message.text)
+    root = bot.driver.posts.create_post(
+        {"channel_id": channel_id, "message": resp["raw_content"]}
+    )
+    bot.driver.posts.create_post(
+        {
+            "channel_id": channel_id,
+            "message": "\n".join(f"**{k}** : {v}" for k, v in resp["debug"].items()),
+            "root_id": root["id"],
+        }
+    )
+
+
 @bot_event_handler(nemo)
 async def handle_message_nemo(chat_message: ChatMessage, bot, channel_id, username):
     if chat_message.type == "reaction":
@@ -266,8 +287,10 @@ bot_threads = []
 bot_threads.append(threading.Thread(target=haiku.run, args=(handle_message_haiku,)))
 bot_threads.append(threading.Thread(target=sonnet.run, args=(handle_message_sonnet,)))
 bot_threads.append(threading.Thread(target=omni.run, args=(handle_message_omni,)))
-bot_threads.append(threading.Thread(target=llama.run, args=(handle_message_llama,)))
-bot_threads.append(threading.Thread(target=nemo.run, args=(handle_message_nemo,)))
+bot_threads.append(
+    threading.Thread(target=llama.run, args=(handle_message_llama_simple,))
+)
+# bot_threads.append(threading.Thread(target=nemo.run, args=(handle_message_nemo,)))
 
 for thread in bot_threads:
     thread.start()
